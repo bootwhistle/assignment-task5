@@ -10,15 +10,38 @@ import * as MapSettings from '../constants/MapSettings';
 import { AuthenticationContext } from '../context/AuthenticationContext';
 import mapMarkerImg from '../images/map-marker.png';
 
+/**
+ * Events map screen, shown after login.
+ *
+ * Responsibilities:
+ * - Shows a Google map with a marker for each volunteer event, and zooms to
+ *   fit all markers when the map first appears.
+ * - Footer bar with the number of events and a "+" button to create an event.
+ * - Logout button (top right) that clears the cached session and returns to Login.
+ *
+ * Current state: the events are the sample list at the bottom of this file
+ * (not loaded from the API yet), the footer text is a placeholder ("X event(s)
+ * found"), and the "+" button and markers don't navigate anywhere yet.
+ *
+ * @param props - Navigation props from the stack navigator; `navigation` is
+ *                used to go back to Login on logout.
+ * @returns The map, footer and logout button.
+ */
 export default function EventsMap(props: StackScreenProps<any>) {
     const { navigation } = props;
     const authenticationContext = useContext(AuthenticationContext);
     const mapViewRef = useRef<MapView>(null);
 
+    /** Will open the "create event" screen. Not implemented yet. */
     const handleNavigateToCreateEvent = () => {};
 
+    /** Will open the details of the tapped event. Not implemented yet. */
     const handleNavigateToEventDetails = () => {};
 
+    /**
+     * Logs the user out: removes the cached user and token from the phone,
+     * clears the user from `AuthenticationContext`, and returns to Login.
+     */
     const handleLogout = async () => {
         AsyncStorage.multiRemove(['userInfo', 'accessToken']).then(() => {
             authenticationContext?.setValue(undefined);
@@ -138,6 +161,11 @@ const styles = StyleSheet.create({
     },
 });
 
+/**
+ * Minimal event shape used by this screen: an ID and a map position.
+ * The full event record in db.json also has a name, description, date,
+ * organizer and volunteer details.
+ */
 interface event {
     id: string;
     position: {
@@ -146,6 +174,10 @@ interface event {
     };
 }
 
+/**
+ * Sample events, copied from db.json, so the map has markers to show
+ * until events are fetched from the API.
+ */
 const events: event[] = [
     {
         id: 'e3c95682-870f-4080-a0d7-ae8e23e2534f',

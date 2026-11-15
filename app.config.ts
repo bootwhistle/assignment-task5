@@ -1,5 +1,16 @@
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
+/**
+ * Expo app configuration (replaces a static app.json).
+ *
+ * Written as a function so it can read environment variables when the app is
+ * started or built. `IMGBB_API_KEY` is copied from the environment into
+ * `extra`, where the app reads it at runtime with `getEnvironentVariable`.
+ *
+ * @param config - The base config Expo passes in (from app.json, if one exists).
+ * @returns The full Expo config: app name, icons, splash screen, native
+ *          plugins and their permission messages, and the `extra` values.
+ */
 export default ({ config }: ConfigContext): ExpoConfig => ({
     ...config,
     name: 'volunteam',

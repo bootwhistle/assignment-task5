@@ -20,6 +20,14 @@ const imageApi = axios.create({
     params: { key: getEnvironentVariable('IMGBB_API_KEY') },
 });
 
+/**
+ * Uploads an image to ImgBB.
+ *
+ * @param imageBase64 - The image file encoded as a base64 string.
+ * @returns A promise that resolves with ImgBB's response. The public image
+ *          address is in `response.data.data.url`. Rejects if the API key is
+ *          missing or the upload fails.
+ */
 export const uploadImage = (imageBase64: string): Promise<AxiosResponse> => {
     const data = new FormData();
     data.append('image', imageBase64);

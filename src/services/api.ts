@@ -13,10 +13,21 @@ import Constants from 'expo-constants';
 // To use `my-json-server`, make sure your `db.json` is located at the repo root.
 const devServerIp = Constants.expoConfig?.hostUri?.split(':')[0] ?? 'localhost';
 
+/** HTTP client for the Volunteam API (json-server with json-server-auth). */
 const api = axios.create({
     baseURL: `http://${devServerIp}:3333`,
 });
 
+/**
+ * Logs a user in through json-server-auth's `POST /login` route.
+ *
+ * @param email - The user's email address (already trimmed and lower-cased).
+ * @param password - The user's password.
+ * @returns A promise that resolves with the response. `response.data` holds
+ *          `accessToken` (a JWT valid for one hour) and `user` (see `User`).
+ *          It rejects with a 400 response and an error message when the email
+ *          or password is wrong.
+ */
 export const authenticateUser = (email: string, password: string): Promise<AxiosResponse> => {
     return api.post(`/login`, { email, password });
 };
