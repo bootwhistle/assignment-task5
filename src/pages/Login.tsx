@@ -15,6 +15,24 @@ import { getFromCache, setInCache } from '../services/caching';
 import { User } from '../types/User';
 import { isTokenExpired, sanitizeEmail, validateEmail } from '../utils';
 
+/**
+ * Login screen: the first screen of the app.
+ *
+ * Responsibilities:
+ * - On open, restores a previous session: if a cached access token has not
+ *   expired, it skips straight to the events map.
+ * - Collects the email and password and validates them when each field loses
+ *   focus (email format, password at least 6 characters), showing
+ *   "invalid email" / "invalid password" next to the label.
+ * - Sends the credentials to the API, caches the returned user and token, saves
+ *   the user in `AuthenticationContext`, then opens `EventsMap`.
+ * - Shows an "Authenticating..." overlay during the request and an alert if
+ *   login fails.
+ *
+ * @param props - Navigation props from the stack navigator; `navigation` is
+ *                used to open the events map.
+ * @returns The login form.
+ */
 export default function Login({ navigation }: StackScreenProps<any>) {
     const authenticationContext = useContext(AuthenticationContext);
     const [email, setEmail] = useState('');
@@ -27,6 +45,8 @@ export default function Login({ navigation }: StackScreenProps<any>) {
     const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
     const isFocused = useIsFocused();
 
+    // Runs on open and whenever authError changes: loads the cached user and
+    // token (to restore a session) and shows any login error in an alert.
     useEffect(() => {
         getFromCache('userInfo').then(
             (cachedUserInfo) => authenticationContext?.setValue(cachedUserInfo as User),
@@ -40,10 +60,16 @@ export default function Login({ navigation }: StackScreenProps<any>) {
             Alert.alert('Authentication Error', authError, [{ text: 'Ok', onPress: () => setAuthError(undefined) }]);
     }, [authError]);
 
+    // Opens the events map once a valid cached token and user are found.
     useEffect(() => {
         if (accessTokenIsValid && authenticationContext?.value) navigation.navigate('EventsMap');
     }, [accessTokenIsValid]);
 
+    /**
+     * Called when "Log in" is tapped. Validates the form and, if it is valid,
+     * logs in through the API. On success the user and token are cached and
+     * the events map opens; on failure the error is shown in an alert.
+     */
     const handleAuthentication = () => {
         if (formIsValid()) {
             setIsAuthenticating(true);
@@ -67,18 +93,35 @@ export default function Login({ navigation }: StackScreenProps<any>) {
         }
     };
 
+    /**
+     * Validates both fields and updates their error messages.
+     *
+     * @returns `true` if the email and password are both valid.
+     */
     const formIsValid = () => {
         const emailIsValid = !isEmailInvalid();
         const passwordIsValid = !isPasswordInvalid();
         return emailIsValid && passwordIsValid;
     };
 
+    /**
+     * Checks the password length (at least 6 characters) and shows or hides
+     * the "invalid password" message.
+     *
+     * @returns `true` if the password is too short.
+     */
     const isPasswordInvalid = (): boolean => {
         const invalidCheck = password.length < 6;
         setPasswordIsInvalid(invalidCheck);
         return invalidCheck ? true : false;
     };
 
+    /**
+     * Checks the email format with `validateEmail` and shows or hides the
+     * "invalid email" message.
+     *
+     * @returns `true` if the email is not valid.
+     */
     const isEmailInvalid = (): boolean => {
         const invalidCheck = !validateEmail(email);
         setEmailIsInvalid(invalidCheck);
